@@ -17,7 +17,10 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -25,7 +28,10 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -43,20 +49,12 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCWs2WZ81L4pJoJIEa1-mxtt3Ykl5BBOvo',
-    appId: '1:560781649721:web:6d096d395c2052941deae8',
-    messagingSenderId: '560781649721',
-    projectId: 'marketplace-63a0b',
-    authDomain: 'marketplace-63a0b.firebaseapp.com',
-    storageBucket: 'marketplace-63a0b.appspot.com',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAc0d7vFVb1PCc8LMFxNfcZpcAz6BZMRg4',
     appId: '1:560781649721:android:57261439d4b29ac01deae8',
     messagingSenderId: '560781649721',
     projectId: 'marketplace-63a0b',
+    databaseURL: 'https://marketplace-63a0b-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'marketplace-63a0b.appspot.com',
   );
 
@@ -65,15 +63,7 @@ class DefaultFirebaseOptions {
     appId: '1:560781649721:ios:29947b7e3c9d5e0b1deae8',
     messagingSenderId: '560781649721',
     projectId: 'marketplace-63a0b',
-    storageBucket: 'marketplace-63a0b.appspot.com',
-    iosBundleId: 'com.example.droneMarket',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBHQHhYIXBKMDb-kZjLMgCdQeghtemdV4k',
-    appId: '1:560781649721:ios:29947b7e3c9d5e0b1deae8',
-    messagingSenderId: '560781649721',
-    projectId: 'marketplace-63a0b',
+    databaseURL: 'https://marketplace-63a0b-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'marketplace-63a0b.appspot.com',
     iosBundleId: 'com.example.droneMarket',
   );

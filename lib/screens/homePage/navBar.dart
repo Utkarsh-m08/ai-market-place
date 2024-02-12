@@ -23,7 +23,7 @@ class _navBarState extends State<navBar> {
   void initState() {
     super.initState();
     _widgetOptions = <Widget>[
-      homePage(filter: widget.filter),
+      homePage(),
       BotPage(),
       profile(),
     ];
@@ -75,17 +75,6 @@ class _navBarState extends State<navBar> {
                   rangRedAccent, // tab button ripple color when pressed
               hoverColor: rangText, // tab button hover color
               haptic: true, // haptic feedback
-              // tabActiveBorder: Border.all(
-              //   color: rangBlueN,
-              //   width: 0,
-              // ), // tab button border
-              // tabBorder:
-              //     Border.all(color: rangBlueN, width: 5), // tab button border
-              // tabShadow: [
-              //   BoxShadow(color: prop.rang1, blurRadius: 2)
-              // ], // tab button shadow
-              // curve: Curves.easeOutExpo, // tab animation curves
-              // duration: Duration(milliseconds: 10), // tab animation duration
               gap: 2, // the tab button gap between icon and text
               color: rangRedAccent, // unselected icon color
               activeColor: rangBackground, // selected icon and text color

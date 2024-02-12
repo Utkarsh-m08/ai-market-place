@@ -1,4 +1,5 @@
 import 'package:drone_market/properties/prop.dart';
+import 'package:drone_market/screens/cart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -72,7 +73,7 @@ class _profileState extends State<profile> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                user.email!,
+                                user.displayName!,
                                 style: GoogleFonts.sourceCodePro(
                                   // fontWeight: FontWeight.bold,
                                   fontSize: screenWidth * 0.07,
@@ -122,39 +123,6 @@ class _profileState extends State<profile> {
               ],
             ),
           ),
-          // Padding(
-          //   padding: EdgeInsets.only(
-          //     left: screenWidth * 0.03,
-          //     right: screenWidth * 0.03,
-          //     bottom: screenheight * 0.03,
-          //   ),
-          //   child: ElevatedButton.icon(
-          //     onPressed: () {},
-          //     icon: Icon(
-          //       Icons.edit,
-          //       color: rangBackground,
-          //     ),
-          //     style: ElevatedButton.styleFrom(
-          //       backgroundColor: rangText,
-          //       foregroundColor: rangText,
-          //       // shape: RoundedRectangleBorder(
-          //       //   borderRadius: BorderRadius.circular(20),
-          //       // ),
-          //       elevation: 5,
-          //     ),
-          //     label: Align(
-          //       alignment: Alignment.centerLeft,
-          //       child: Text(
-          //         "  edit account details",
-          //         style:  GoogleFonts.sourceCodePro(
-          //           // fontWeight: FontWeight.bold,
-          //           fontSize: screenWidth * 0.05,
-          //           color: rangBackground,
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
           Padding(
             padding: EdgeInsets.only(
               top: screenheight * 0.08,
@@ -182,9 +150,6 @@ class _profileState extends State<profile> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: rangBackground,
                   foregroundColor: rangBackground,
-                  // shape: RoundedRectangleBorder(
-                  //   borderRadius: BorderRadius.circular(20),
-                  // ),
                   elevation: 0,
                 ),
                 onPressed: () {
@@ -232,7 +197,8 @@ class _profileState extends State<profile> {
                   elevation: 0,
                 ),
                 onPressed: () {
-                  // signUserOut();
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => userCart()));
                 },
                 label: Align(
                   alignment: Alignment.centerLeft,

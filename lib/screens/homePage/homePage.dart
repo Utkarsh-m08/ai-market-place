@@ -1,5 +1,6 @@
 import 'dart:convert';
-// import 'package:drone_market/screens/cart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:drone_market/screens/cart.dart';
 import 'package:drone_market/screens/homePage/navBar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,8 +14,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class homePage extends StatefulWidget {
-  homePage({super.key, this.filter});
-  String? filter;
+  homePage({
+    super.key,
+  });
 
   @override
   State<homePage> createState() => _homePageState();
@@ -25,6 +27,13 @@ class _homePageState extends State<homePage> {
   List<Map<String, dynamic>> filtereddata = [];
   List<Map<String, dynamic>> searchedddata = [];
   TextEditingController editingController = TextEditingController();
+  String filter = "All";
+  final List<String> categories = [
+    "All",
+    "Electronics",
+    "Clothing",
+    "Accessories"
+  ];
 
   @override
   void initState() {
@@ -46,14 +55,16 @@ class _homePageState extends State<homePage> {
   }
 
   Future<void> _loadData() async {
+    searchedddata = [];
+    filtereddata = [];
     final String response = await rootBundle.loadString('assets/data.json');
     catalogdata = await json.decode(response);
     for (var i = 0; i < catalogdata!.keys.length; i++) {
-      if (widget.filter != null) {
-        if (catalogdata![(i + 1).toString()]["Category"] == widget.filter) {
+      if (filter != "All") {
+        if (catalogdata![(i + 1).toString()]["Category"] == filter) {
           filtereddata.add(catalogdata![(i + 1).toString()]);
         }
-      } else {
+      } else if (filter == "All") {
         filtereddata.add(catalogdata![(i + 1).toString()]);
       }
     }
@@ -71,6 +82,14 @@ class _homePageState extends State<homePage> {
     double screenheight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => userCart()));
+              },
+              icon: Icon(Icons.shopping_cart_outlined))
+        ],
         title: Text(
           "Marketplace",
           style: GoogleFonts.sourceCodePro(
@@ -89,6 +108,35 @@ class _homePageState extends State<homePage> {
             )
           : Column(
               children: [
+                SizedBox(
+                    height: 50,
+                    child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: categories.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Padding(
+                            padding: EdgeInsets.only(
+                                left: (screenWidth * 0.01215) / 2,
+                                right: (screenWidth * 0.01215) / 2),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  filter = categories[index];
+                                  _loadData();
+                                });
+                              },
+                              child: Text(
+                                categories[index],
+                                style: TextStyle(
+                                  color: rangText,
+                                ),
+                              ),
+                            ),
+                          );
+                        })),
+                SizedBox(
+                  height: 10,
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
@@ -96,44 +144,17 @@ class _homePageState extends State<homePage> {
                       filterSearchResults(value);
                     },
                     style: GoogleFonts.sourceCodePro(
-                      color: Colors.white,
+                      color: rangText,
                     ),
                     controller: editingController,
                     decoration: InputDecoration(
-                      labelText: "Search",
-                      fillColor: Colors.white,
-                      focusColor: Colors.white,
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(25.0),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: screenheight * 0.05771,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        filterButton(filter: "All"),
-                        SizedBox(
-                          width: screenWidth * 0.01215,
-                        ),
-                        filterButton(filter: "Electronics"),
-                        SizedBox(
-                          width: screenWidth * 0.01215,
-                        ),
-                        filterButton(filter: "Clothing"),
-                        SizedBox(
-                          width: screenWidth * 0.01215,
-                        ),
-                        filterButton(filter: "Accessories"),
-                      ],
-                    ),
+                        labelText: "Search",
+                        fillColor: rangText,
+                        focusColor: rangText,
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(25.0)))),
                   ),
                 ),
                 const SizedBox(
@@ -153,30 +174,6 @@ class _homePageState extends State<homePage> {
   }
 }
 
-class filterButton extends StatelessWidget {
-  const filterButton({
-    super.key,
-    required this.filter,
-  });
-  final String filter;
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => navBar(
-                      filter: filter == "All" ? null : filter,
-                      index: 0,
-                    )));
-      },
-      child: Text(filter),
-    );
-  }
-}
-
 class productDescription extends StatelessWidget {
   const productDescription({
     super.key,
@@ -190,154 +187,164 @@ class productDescription extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenheight = MediaQuery.of(context).size.height;
     var user = FirebaseAuth.instance.currentUser;
-    DatabaseReference ref = FirebaseDatabase.instance
-        .ref("${user!.uid}/cart")
-        .child("${productdata!["productID"]}");
+    var db = FirebaseFirestore.instance;
 
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: rangBackground,
-          ),
-          height: 385,
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      height: screenheight * 0.17315,
-                      width: double.infinity,
-                      child: Image.network(
-                        productdata!["Product Image"],
-                        fit: BoxFit.fill,
-                      ),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20), color: rangBackground),
+        height: 400,
+        width: screenWidth,
+        child: Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    height: screenheight * 0.17315,
+                    width: double.infinity,
+                    child: Image.network(
+                      productdata!["Product Image"],
+                      fit: BoxFit.fill,
                     ),
                   ),
-                  SizedBox(
-                    height: screenheight * 0.01154,
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      productdata!["productBrand"] +
-                          " " +
-                          productdata!["productName"],
-                      style: GoogleFonts.sourceCodePro(
-                        color: Colors.black,
-                        fontSize: 25,
-                        fontWeight: FontWeight.w800,
-                      ),
-                      textAlign: TextAlign.start,
+                ),
+                SizedBox(
+                  height: screenheight * 0.01154,
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    productdata!["productBrand"] +
+                        " " +
+                        productdata!["productName"],
+                    style: GoogleFonts.sourceCodePro(
+                      color: Colors.black,
+                      fontSize: 25,
+                      fontWeight: FontWeight.w800,
                     ),
+                    textAlign: TextAlign.start,
                   ),
-                  SizedBox(
-                    height: screenheight * 0.01154,
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              color: rangRedAccent),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(productdata!["Category"],
-                                style: GoogleFonts.sourceCodePro(
-                                    color: rangText, fontSize: 14)),
-                          )),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              color: rangRedAccent),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(productdata!["productBrand"],
-                                style: GoogleFonts.sourceCodePro(
-                                    color: rangText, fontSize: 14)),
-                          )),
-                    ],
-                  ),
-                  SizedBox(
-                    height: screenheight * 0.01154,
-                  ),
-                  SingleChildScrollView(
-                    child: Text(productdata!["Product Description"],
-                        style: GoogleFonts.sourceCodePro(
-                          color: rangText,
-                          fontSize: 14,
+                ),
+                SizedBox(
+                  height: screenheight * 0.01154,
+                ),
+                Row(
+                  children: [
+                    Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            color: rangRedAccent),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(productdata!["Category"],
+                              style: GoogleFonts.sourceCodePro(
+                                  color: rangText, fontSize: 14)),
                         )),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("₹${productdata!["Price (INR)"]}",
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            color: rangRedAccent),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(productdata!["productBrand"],
+                              style: GoogleFonts.sourceCodePro(
+                                  color: rangText, fontSize: 14)),
+                        )),
+                  ],
+                ),
+                SizedBox(
+                  height: screenheight * 0.01154,
+                ),
+                SingleChildScrollView(
+                  child: Text(productdata!["Product Description"],
+                      style: GoogleFonts.sourceCodePro(
+                        color: rangText,
+                        fontSize: 14,
+                      )),
+                ),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text("₹${productdata!["Price (INR)"]}",
                           style: GoogleFonts.sourceCodePro(
-                            color: rangBackground,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 25,
-                          )),
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () async {
-                              await ref.set(productdata!);
-                              print("done");
-                            },
-                            child: Container(
+                              color: rangText,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 25)),
+                    ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            await db
+                                .collection("users")
+                                .doc(user!.uid.toString())
+                                .collection("cart")
+                                .add(productdata!);
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Item Added to Cart!'),
+                                duration: Duration(milliseconds: 700)));
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.white),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Icon(
+                                Icons.add,
+                                color: rangRedAccent,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            await db
+                                .collection("users")
+                                .doc(user!.uid.toString())
+                                .collection("cart")
+                                .add(productdata!);
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Item Added to Cart!'),
+                                duration: Duration(milliseconds: 700)));
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => userCart()));
+                          },
+                          child: Container(
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20),
                                   color: Colors.white),
                               child: Padding(
                                 padding: const EdgeInsets.all(10.0),
                                 child: Icon(
-                                  Icons.add,
+                                  Icons.shopping_cart_checkout,
                                   color: rangRedAccent,
                                 ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => homePage(),
-                                  ));
-                              print("bye");
-                            },
-                            child: Container(
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    color: Colors.white),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Icon(
-                                    Icons.shopping_cart_checkout,
-                                    color: rangRedAccent,
-                                  ),
-                                )),
-                          )
-                        ],
-                      ),
-                    ],
-                  )
-                ],
-              ),
+                              )),
+                        )
+                      ],
+                    ),
+                  ],
+                )
+              ],
             ),
-          )),
+          ),
+        ),
+      ),
     );
   }
 }

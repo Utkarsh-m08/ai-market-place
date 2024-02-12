@@ -75,7 +75,7 @@ class _BotPageState extends State<BotPage> {
   sendUserMessageToFlask(String text) async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.5:5000/chat'),
+        Uri.parse('http://192.168.1.2:5000/chat'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
