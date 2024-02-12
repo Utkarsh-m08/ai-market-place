@@ -1,8 +1,10 @@
 import 'package:drone_market/firebase_options.dart';
 import 'package:drone_market/screens/auth/auth.dart';
+import 'package:drone_market/screens/homePage/BoTPage.dart';
 import 'package:drone_market/screens/landing.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:drone_market/screens/homePage/navBar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

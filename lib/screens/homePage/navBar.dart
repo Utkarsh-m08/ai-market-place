@@ -1,4 +1,5 @@
 import 'package:drone_market/properties/prop.dart';
+import 'package:drone_market/screens/homePage/BoTPage.dart';
 import 'package:drone_market/screens/homePage/homePage.dart';
 import 'package:drone_market/screens/homePage/profile.dart';
 import 'package:flutter/material.dart';
@@ -23,9 +24,8 @@ class _navBarState extends State<navBar> {
     super.initState();
     _widgetOptions = <Widget>[
       homePage(filter: widget.filter),
-      Scaffold(),
+      BotPage(),
       profile(),
-      Scaffold(),
     ];
     if (widget.index != null) {
       _selectedIndex = widget.index!;
